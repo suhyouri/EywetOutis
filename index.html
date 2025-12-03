@@ -356,7 +356,6 @@
       }
 
       .storyboard-section h2 {
-        font-family: "Avara";
         font-size: 2.5rem;
         margin-bottom: 3rem;
         color: #fff;
@@ -365,7 +364,6 @@
       }
 
       .storyboard-container {
-        font-family: "OnulSamhwagothic", Arial, Helvetica, sans-serif;
         max-width: 1400px;
         margin: 0 auto;
         overflow-x: auto;
@@ -418,22 +416,14 @@
 
       /* 푸터 섹션 */
       .footer-section {
-        font-family: "OnulKangsan";
         padding: 50px;
         background: #000;
         text-align: center;
+        border-top: 1px solid #333;
         position: relative;
       }
 
       .footer-section p {
-        color: #fff;
-        font-size: 0.9rem;
-        font-weight: 300;
-        margin: 0;
-      }
-
-      .footer-section span {
-        font-family: "OnulSamhwagothic";
         color: #fff;
         font-size: 0.9rem;
         font-weight: 300;
@@ -595,7 +585,7 @@
       <div class="firefly" id="firefly4"></div>
       <div class="firefly" id="firefly5"></div>
 
-      <h2>Storyboard</h2>
+      <h2>스토리보드</h2>
       <div class="storyboard-container">
         <table class="storyboard-table">
           <thead>
@@ -816,26 +806,17 @@
       let isBlinking = false;
       let blinkCooldown = false;
 
-      // 서버에서 파일 목록 가져오기
+      // GitHub Pages용: files.json에서 파일 목록 가져오기
       async function loadMediaFiles() {
         try {
-          const response = await fetch("/api/list-files");
+          const response = await fetch("files.json");
           const files = await response.json();
 
-          // 이미지만 필터링 (비디오 제외)
-          mediaFiles = files
-            .filter((filename) => {
-              const ext = filename.toLowerCase();
-              return (
-                ext.endsWith(".png") ||
-                ext.endsWith(".jpg") ||
-                ext.endsWith(".jpeg")
-              );
-            })
-            .map((filename) => ({
-              type: "image",
-              src: `images/${filename}`,
-            }));
+          // 이미지 파일 매핑
+          mediaFiles = files.map((filename) => ({
+            type: "image",
+            src: `images/${filename}`,
+          }));
 
           console.log(
             `✅ ${mediaFiles.length}개의 이미지 파일을 로드했습니다.`
@@ -849,7 +830,7 @@
           }
         } catch (error) {
           console.error("❌ 파일 목록을 가져오는데 실패했습니다:", error);
-          console.log("💡 서버가 실행 중인지 확인하세요: npm start");
+          console.log("💡 files.json 파일이 있는지 확인하세요.");
         }
       }
 
