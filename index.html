@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eγω et Oὔτis 나와 아무것도 아닌자</title>
+
+    <!-- MediaPipe Face Mesh -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      @font-face {
+        font-family: "Avara";
+        src: url("font/Avara-Bold.woff2") format("woff2"),
+          url("font/Avara-Bold.woff") format("woff");
+        font-weight: bold;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "OnulKangsan";
+        src: url("font/OnulKangsan-Regular.otf") format("opentype");
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "OnulSamhwagothic";
+        src: url("font/OnulSamhwagothic-Regular.otf") format("opentype");
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      body {
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.6;
+        color: #000;
+        background: #fff;
+        scroll-behavior: smooth;
+      }
+
+      /* 웹캠 비디오 (숨김) */
+      #webcam {
+        position: fixed;
+        top: -9999px;
+        left: -9999px;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+      }
+
+      /* 로딩 오버레이 */
+      #loadingOverlay {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        padding: 15px 20px;
+        border-radius: 5px;
+        font-size: 14px;
+        z-index: 9999;
+        transition: opacity 0.5s;
+      }
+
+      /* 첫 번째 섹션 - 풀스크린 이미지 */
+      .hero-section {
+        width: 100%;
+        height: 100vh;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero-section::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0.4;
+        z-index: 0;
+      }
+
+      .hero-content {
+        text-align: center;
+        color: #fff;
+        position: relative;
+        z-index: 1;
+      }
+
+      .hero-content h1 {
+        font-size: 10rem;
+        font-family: "Avara", Arial, sans-serif;
+        margin-bottom: 1rem;
+        font-weight: 300;
+      }
+
+      .hero-content p {
+        font-size: 1.5rem;
+        font-weight: 300;
+      }
+
+      .hero-content .subtitle-kr {
+        font-family: "OnulKangsan", sans-serif;
+        font-size: 4rem;
+        font-weight: normal;
+      }
+
+      .hero-content .year {
+        font-family: "OnulKangsan", sans-serif;
+        font-size: 2rem;
+        font-weight: normal;
+      }
+
+      /* 기획의도 섹션 */
+      .planning-section {
+        min-height: 100vh;
+        padding: 100px 50px;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" style="font-size: 24px;"><text y="24">🕯️</text></svg>')
+            16 16,
+          auto;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* 검은색 오버레이 (전체를 덮음) */
+      .planning-section::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+          circle 200px at var(--cursor-x, 50%) var(--cursor-y, 50%),
+          rgba(0, 0, 0, 0) 0%,
+          rgba(0, 0, 0, 0.3) 40%,
+          rgba(0, 0, 0, 0.7) 60%,
+          rgba(0, 0, 0, 0.95) 80%,
+          rgba(0, 0, 0, 1) 100%
+        );
+        pointer-events: none;
+        z-index: 10;
+        opacity: 1;
+        filter: blur(30px);
+      }
+
+      /* 글로우 효과 */
+      .planning-section::after {
+        content: "";
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        background: transparent;
+        pointer-events: none;
+        z-index: 11;
+        transform: translate(-50%, -50%);
+        left: var(--cursor-x, 50%);
+        top: var(--cursor-y, 50%);
+        opacity: 0;
+        filter: blur(20px);
+      }
+
+      .planning-content {
+        max-width: 1000px;
+        width: 100%;
+        font-family: "OnulSamhwagothic", sans-serif;
+        position: relative;
+        z-index: 5;
+      }
+
+      /* 반딧불이 효과 */
+      .firefly {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 1) 0%,
+          rgba(255, 255, 255, 0.8) 30%,
+          transparent 70%
+        );
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 20;
+        animation: firefly-float 15s infinite ease-in-out;
+        opacity: 0;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.6),
+          0 0 20px rgba(255, 255, 255, 0.4), 0 0 30px rgba(255, 255, 255, 0.2);
+      }
+
+      @keyframes firefly-float {
+        0% {
+          transform: translate(0, 0);
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        90% {
+          opacity: 1;
+        }
+        100% {
+          transform: translate(calc(100vw - 100px), calc(100vh - 100px));
+          opacity: 0;
+        }
+      }
+
+      @keyframes firefly-glow {
+        0%,
+        100% {
+          opacity: 0.6;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.3);
+        }
+      }
+
+      .firefly::after {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: inherit;
+        border-radius: 50%;
+        animation: firefly-glow 2s infinite ease-in-out;
+      }
+
+      .planning-content span {
+        font-family: "Avara", Arial, sans-serif;
+      }
+
+      .planning-content h2 {
+        font-size: 3rem;
+        margin-bottom: 2rem;
+        color: #fff;
+        font-weight: 300;
+      }
+
+      .planning-content p {
+        font-size: 1.2rem;
+        line-height: 1.8;
+        color: #fff;
+        margin-bottom: 1.5rem;
+        font-weight: 300;
+      }
+
+      /* 영상 섹션 */
+      .video-section {
+        min-height: 100vh;
+        padding: 100px 50px;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .video-container {
+        max-width: 1200px;
+        width: 100%;
+        position: relative;
+        cursor: pointer;
+      }
+
+      .video-container h2 {
+        font-size: 2.5rem;
+        margin-bottom: 2rem;
+        color: #fff;
+        text-align: center;
+        font-weight: 300;
+        font-family: "Avara", Arial, sans-serif;
+      }
+
+      .video-wrapper {
+        position: relative;
+        width: 100%;
+        padding-bottom: 56.25%;
+        background: #000;
+        overflow: hidden;
+      }
+
+      .video-wrapper video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .video-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+      }
+
+      .video-overlay.hidden {
+        opacity: 0;
+      }
+
+      .play-icon {
+        width: 60px;
+        height: 60px;
+        border: 2px solid #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: #fff;
+      }
+
+      /* 스토리보드 섹션 */
+      .storyboard-section {
+        padding: 100px 50px;
+        background: #000;
+        position: relative;
+      }
+
+      .storyboard-section h2 {
+        font-family: "Avara";
+        font-size: 2.5rem;
+        margin-bottom: 3rem;
+        color: #fff;
+        text-align: center;
+        font-weight: 300;
+      }
+
+      .storyboard-container {
+        font-family: "OnulSamhwagothic", Arial, Helvetica, sans-serif;
+        max-width: 1400px;
+        margin: 0 auto;
+        overflow-x: auto;
+      }
+
+      .storyboard-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #000;
+      }
+
+      .storyboard-table th,
+      .storyboard-table td {
+        border: 1px solid #fff;
+        padding: 15px;
+        text-align: center;
+        min-width: 200px;
+        color: #fff;
+      }
+
+      .storyboard-table th:first-child,
+      .storyboard-table td:first-child {
+        min-width: 40px;
+        width: 40px;
+      }
+
+      .storyboard-table th {
+        background: #000;
+        color: #fff;
+        font-weight: 400;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .storyboard-table td {
+        background: #000;
+        height: 150px;
+        vertical-align: top;
+        font-weight: 300;
+      }
+
+      .storyboard-table tr:nth-child(even) td {
+        background: #000;
+      }
+
+      .storyboard-table tr:hover td {
+        background: #111;
+      }
+
+      /* 푸터 섹션 */
+      .footer-section {
+        font-family: "OnulKangsan";
+        padding: 50px;
+        background: #000;
+        text-align: center;
+        position: relative;
+      }
+
+      .footer-section p {
+        color: #fff;
+        font-size: 0.9rem;
+        font-weight: 300;
+        margin: 0;
+      }
+
+      .footer-section span {
+        font-family: "OnulSamhwagothic";
+        color: #fff;
+        font-size: 0.9rem;
+        font-weight: 300;
+        margin: 0;
+      }
+
+      /* 반응형 */
+      @media (max-width: 768px) {
+        .hero-content h1 {
+          font-size: 2.5rem;
+        }
+
+        .hero-content p {
+          font-size: 1.2rem;
+        }
+
+        .planning-section,
+        .video-section,
+        .storyboard-section {
+          padding: 60px 20px;
+        }
+
+        .planning-content h2,
+        .video-container h2,
+        .storyboard-section h2 {
+          font-size: 2rem;
+        }
+
+        .storyboard-table th,
+        .storyboard-table td {
+          min-width: 150px;
+          padding: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 웹캠 비디오 (숨김) -->
+    <video id="webcam" autoplay playsinline></video>
+
+    <!-- 로딩 오버레이 -->
+    <div id="loadingOverlay">👁️ 웹캠 초기화 중...</div>
+
+    <!-- 첫 번째 섹션: 풀스크린 이미지 -->
+    <section class="hero-section" id="heroSection">
+      <div class="hero-content">
+        <p class="year">2025</p>
+        <h1>Eyw et Oὔtis</h1>
+        <p class="subtitle-kr">나와 아무것도 아닌자</p>
+      </div>
+    </section>
+
+    <!-- 두 번째 섹션: 기획의도 -->
+    <section class="planning-section">
+      <div class="planning-content">
+        <h2>기획의도</h2>
+        <p>
+          <span>Eyw et Outis</span>(나와 아무것도 아닌 자)는 밴쿠버 기반 여성
+          4인조 사이키델릭 록밴드 그룹 FRANKIIE 의 2019년 발매된 Forget Your
+          Head 앨범의 두 번째 곡 Dream Reader의 뮤직비디오입니다. 이 곡은 '눈이
+          보이지 않는 꿈을 꾸었다'라는 가사로 시작합니다.
+        </p>
+        <p>
+          프로이트는 "꿈은 무의식의 통로"라고 말합니다. 무의식은 신체성과 더불어
+          '의식으로부터 미끄러지기'에 흥미를 두는 주제입니다. 나이지만 나에게도
+          미지인 것. 해석되지 않는 몸을 만나기. <span>Eyw et Outis</span>는
+          '어둠이 보여주는 것과 어둠이 보게 하는 것'에 천착하면서 떠올린
+          이미지들의 배열입니다. 이미지들은 이미 본 적 있는 장면을 재현하거나,
+          한 번쯤 보고자 상상했던 이미지들이 혼재해 있습니다.
+        </p>
+        <p>
+          <span>Eyw et Outis</span>(나와 아무것도 아닌 자)의
+          <span>Outis</span>는 호메로스의 '오디세이아(The Odyssey)' 에피소드에서
+          등장합니다. 주인공 오디세우스가 식인 거인(키클롭스)에게 잡혔을 때,
+          자신의 이름을 "<span>Outis</span>(nobody)"라고 거짓말을 합니다. 나중에
+          오디세우스가 거인의 눈을 찌르고 도망갈 때, 거인이 동료들에게 "누가
+          나를 공격했다!"라고 소리치는데, 이름이
+          '<span>Outis</span>(nobody)'였기 때문에 "아무도 나를 공격하지 않았어!
+          (Nobody is attacking me!)"라고 말하게 되어 동료들의 도움을 받지
+          못합니다. 여기서 '우티스(Nobody)'는 지혜로운 은폐, 익명성, 혹은
+          존재하지만 존재하지 않는 상태를 상징합니다. 나를 무명씨로 명명하기.
+        </p>
+        <p
+          style="
+            padding-left: 30px;
+            border-left: 2px solid #fff;
+            font-style: italic;
+            margin: 2rem 0;
+            color: #fff;
+          "
+        >
+          나. 그것은 진정 그 누구도 아니다. 그것은 무명씨이다. 나가 오퍼레이터
+          이고자 하면, 또는 모든 객관화나 명명 행위가 (자신에게) 일어나는
+          당사자이고자 하면, 나는 이처럼 객관화나 명명 이전에 있어야 한다.
+          명명된 나, 나라고 명명된 자, 이것은 하나의 객체이다. 최초의 나, 상술된
+          바가 바로 그 최초의 객관화가 되고 있는 나, 이 나는 모든 것이 보라고
+          또는 생각하라고 주어진 미지의 사람, 모든 것이 호소해 오며, (눈) 앞에
+          (~하는) 어떤 것이 있는 미지의 사람이다. 그러니까 결국 나, 그것은
+          부정성이다. 물론 그 자체로는 포착할 수 없는 것이다. 아무것도 아닌
+          것이므로. 그러면 그것이 사유하고 추론하며 말하고 논의하며 고통을
+          느끼고 즐기는 등을 하는 당사자인가? 분명 아니다. 왜냐하면 그것은
+          아무것도 아니니까 ㅡ 사유하고 지각하고 등을 하는 자, 이것은 신체를
+          통한 세계에의 열림인 것으로서의 이 부정성이다 ㅡ 우리는 반성적이라는
+          성질을 신체에 의해 이해해야 하며, 신체의, 말의, 자기와의 관계에 의해
+          이해해야 한다.
+        </p>
+        <p
+          style="
+            text-align: right;
+            font-style: italic;
+            margin-top: -1rem;
+            color: #fff;
+          "
+        >
+          - 모리스 메를로 퐁티 &lt;보이는 것과 보이지 않는 것&gt;, 1960년 4월,
+          <span>Eyw et Outis</span>(나와 아무도 아닌 자)에서
+        </p>
+        <p>
+          AI로 영상을 만드는 과정은 이러한 존재론적 물음을 매체적으로
+          구현합니다. 프롬프트를 입력하는 순간, 나는 창작의 주체이면서 동시에
+          알고리즘이라는 타자에게 의존하는 존재가 됩니다. 생성된 이미지들은 내가
+          의도한 것이면서 동시에 예측할 수 없는 낯선 것들입니다. 통제와 우연,
+          의도와 미끄러짐 사이에서 만들어지는 이 이미지들은 '있기도 하고 없기도
+          한' 몸들을 드러냅니다. 초기의 텍스트로 먼저 적히고, 스토리보드로
+          그려낸 그림이 다시 프롬프트 텍스트로 환원되어 이미지로 향하는 과정을
+          거쳤습니다. 그리고 이후 이미지 선정 과정에서 직관적으로 하나의
+          상징으로 귀결되지 않는 모호한 이미지를 선별했습니다.
+        </p>
+        <p>
+          나의 이미지들은 <span>Eyw</span>(나)와 <span>Outis</span>(nobody) 사이
+          어디쯤 와있을까요. 있기도 없기도 한 몸들을 바라보며 생겨나는
+          정동(affect)은 무엇이 되는 걸까요.
+        </p>
+      </div>
+    </section>
+
+    <!-- 세 번째 섹션: 영상 (호버하면 재생) -->
+    <section class="video-section">
+      <div class="video-container">
+        <h2>Eyw et Outis</h2>
+        <div class="video-wrapper" id="videoWrapper">
+          <video id="projectVideo" loop muted autoplay>
+            <source src="images/13.mp4" type="video/mp4" />
+            브라우저가 비디오를 지원하지 않습니다.
+          </video>
+          <div class="video-overlay" id="videoOverlay">
+            <div class="play-icon">▶</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 네 번째 섹션: 스토리보드 테이블 -->
+    <section class="storyboard-section">
+      <!-- 반딧불이 5마리 -->
+      <div class="firefly" id="firefly1"></div>
+      <div class="firefly" id="firefly2"></div>
+      <div class="firefly" id="firefly3"></div>
+      <div class="firefly" id="firefly4"></div>
+      <div class="firefly" id="firefly5"></div>
+
+      <h2>Storyboard</h2>
+      <div class="storyboard-container">
+        <table class="storyboard-table">
+          <thead>
+            <tr>
+              <th>씬 번호</th>
+              <th>스토리보드</th>
+              <th>프롬프트</th>
+              <th>산출이미지</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>오프닝 시퀀스</td>
+              <td>"새로운 시작..."</td>
+              <td>페이드 인</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>캐릭터 소개</td>
+              <td>주인공 등장</td>
+              <td>클로즈업 샷</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>배경 설정</td>
+              <td>환경 설명</td>
+              <td>와이드 샷</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>갈등 발생</td>
+              <td>문제 제기</td>
+              <td>긴장감 있는 구도</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>전개</td>
+              <td>스토리 진행</td>
+              <td>다양한 앵글</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>클라이맥스 준비</td>
+              <td>긴장 고조</td>
+              <td>빠른 컷</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>절정</td>
+              <td>핵심 메시지</td>
+              <td>임팩트 있는 장면</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>해결</td>
+              <td>결말 암시</td>
+              <td>차분한 톤</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td>엔딩 시퀀스</td>
+              <td>마무리 멘트</td>
+              <td>페이드 아웃</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>크레딧</td>
+              <td>제작진 소개</td>
+              <td>스크롤 텍스트</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td>추가 장면 1</td>
+              <td>보조 내러티브</td>
+              <td>미디엄 샷</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td>추가 장면 2</td>
+              <td>세부 설명</td>
+              <td>디테일 샷</td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td>추가 장면 3</td>
+              <td>배경 정보</td>
+              <td>컷어웨이</td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td>추가 장면 4</td>
+              <td>캐릭터 발전</td>
+              <td>오버 숄더</td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td>추가 장면 5</td>
+              <td>환경 묘사</td>
+              <td>파노라마</td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td>추가 장면 6</td>
+              <td>감정선 강화</td>
+              <td>익스트림 클로즈업</td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td>추가 장면 7</td>
+              <td>분위기 전환</td>
+              <td>트래킹 샷</td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td>추가 장면 8</td>
+              <td>액션 시퀀스</td>
+              <td>역동적인 구도</td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td>추가 장면 9</td>
+              <td>대화 장면</td>
+              <td>투 샷</td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td>추가 장면 10</td>
+              <td>반전 요소</td>
+              <td>서프라이즈 앵글</td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td>추가 장면 11</td>
+              <td>회상 시퀀스</td>
+              <td>흑백 효과</td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td>추가 장면 12</td>
+              <td>상징적 이미지</td>
+              <td>메타포 활용</td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td>추가 장면 13</td>
+              <td>긴장 완화</td>
+              <td>부드러운 조명</td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td>추가 장면 14</td>
+              <td>재긴장</td>
+              <td>어두운 톤</td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td>추가 장면 15</td>
+              <td>전환점</td>
+              <td>특별한 구도</td>
+            </tr>
+            <tr>
+              <td>26</td>
+              <td>추가 장면 16</td>
+              <td>결단의 순간</td>
+              <td>강렬한 조명</td>
+            </tr>
+            <tr>
+              <td>27</td>
+              <td>추가 장면 17</td>
+              <td>여운</td>
+              <td>롱 테이크</td>
+            </tr>
+            <tr>
+              <td>28</td>
+              <td>추가 장면 18</td>
+              <td>숨겨진 메시지</td>
+              <td>세밀한 연출</td>
+            </tr>
+            <tr>
+              <td>29</td>
+              <td>추가 장면 19</td>
+              <td>최종 반전</td>
+              <td>충격적인 구도</td>
+            </tr>
+            <tr>
+              <td>30</td>
+              <td>최종 장면</td>
+              <td>엔딩 메시지</td>
+              <td>여운 있는 마무리</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 푸터 섹션 -->
+    <footer class="footer-section">
+      <p>
+        &copy; <span id="currentYear"></span> Suh Youri. All rights reserved.
+      </p>
+    </footer>
+
+    <script>
+      // 현재 연도 자동 설정
+      document.getElementById("currentYear").textContent =
+        new Date().getFullYear();
+
+      let mediaFiles = [];
+      let currentMediaIndex = 0;
+      let heroVideoElement = null;
+      const heroSection = document.getElementById("heroSection");
+
+      // 눈 깜빡임 감지 변수
+      const videoElement = document.getElementById("webcam");
+      const loadingOverlay = document.getElementById("loadingOverlay");
+      const blinkThreshold = 0.21; // EAR 임계값
+      let isBlinking = false;
+      let blinkCooldown = false;
+
+      // 서버에서 파일 목록 가져오기
+      async function loadMediaFiles() {
+        try {
+          const response = await fetch("/api/list-files");
+          const files = await response.json();
+
+          // 이미지만 필터링 (비디오 제외)
+          mediaFiles = files
+            .filter((filename) => {
+              const ext = filename.toLowerCase();
+              return (
+                ext.endsWith(".png") ||
+                ext.endsWith(".jpg") ||
+                ext.endsWith(".jpeg")
+              );
+            })
+            .map((filename) => ({
+              type: "image",
+              src: `images/${filename}`,
+            }));
+
+          console.log(
+            `✅ ${mediaFiles.length}개의 이미지 파일을 로드했습니다.`
+          );
+
+          // 파일 로드 후 초기 이미지 설정
+          if (mediaFiles.length > 0) {
+            changeMedia();
+          } else {
+            console.warn("⚠️ images 폴더에 이미지 파일이 없습니다.");
+          }
+        } catch (error) {
+          console.error("❌ 파일 목록을 가져오는데 실패했습니다:", error);
+          console.log("💡 서버가 실행 중인지 확인하세요: npm start");
+        }
+      }
+
+      // 이미지 전환 함수
+      function changeMedia() {
+        if (mediaFiles.length === 0) return;
+
+        // 랜덤 인덱스 선택 (현재와 다른 것)
+        let newIndex;
+        do {
+          newIndex = Math.floor(Math.random() * mediaFiles.length);
+        } while (newIndex === currentMediaIndex && mediaFiles.length > 1);
+
+        currentMediaIndex = newIndex;
+        const media = mediaFiles[currentMediaIndex];
+
+        // 기존 비디오 엘리먼트 제거 (혹시 있다면)
+        if (heroVideoElement) {
+          heroVideoElement.remove();
+          heroVideoElement = null;
+        }
+
+        // 이미지 배경 설정
+        const style = document.createElement("style");
+        style.id = "hero-background-style";
+
+        // 기존 스타일 제거
+        const oldStyle = document.getElementById("hero-background-style");
+        if (oldStyle) oldStyle.remove();
+
+        style.textContent = `
+          #heroSection::before {
+            background-image: url('${media.src}');
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // Eye Aspect Ratio (EAR) 계산
+      // EAR = (|p2 - p6| + |p3 - p5|) / (2 * |p1 - p4|)
+      function calculateEAR(eyeLandmarks) {
+        // Vertical distances
+        const v1 = distance(eyeLandmarks[1], eyeLandmarks[5]);
+        const v2 = distance(eyeLandmarks[2], eyeLandmarks[4]);
+        // Horizontal distance
+        const h = distance(eyeLandmarks[0], eyeLandmarks[3]);
+
+        if (h === 0) return 0;
+        return (v1 + v2) / (2.0 * h);
+      }
+
+      function distance(p1, p2) {
+        return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+      }
+
+      function onResults(results) {
+        // Hide loading overlay once we have results (tracking started)
+        if (loadingOverlay.style.opacity !== "0") {
+          loadingOverlay.style.opacity = "0";
+          setTimeout(() => {
+            loadingOverlay.style.display = "none";
+          }, 500);
+        }
+
+        if (
+          results.multiFaceLandmarks &&
+          results.multiFaceLandmarks.length > 0
+        ) {
+          const landmarks = results.multiFaceLandmarks[0];
+
+          // MediaPipe Face Mesh Indices
+          // Left Eye: 33, 160, 158, 133, 153, 144
+          // Right Eye: 362, 385, 387, 263, 373, 380
+          const leftEyeIndices = [33, 160, 158, 133, 153, 144];
+          const rightEyeIndices = [362, 385, 387, 263, 373, 380];
+
+          const leftEye = leftEyeIndices.map((index) => landmarks[index]);
+          const rightEye = rightEyeIndices.map((index) => landmarks[index]);
+
+          const leftEAR = calculateEAR(leftEye);
+          const rightEAR = calculateEAR(rightEye);
+          const avgEAR = (leftEAR + rightEAR) / 2;
+
+          // Blink detection logic
+          if (avgEAR < blinkThreshold) {
+            if (!isBlinking && !blinkCooldown) {
+              isBlinking = true;
+              console.log("👁️ 깜빡임 감지! EAR:", avgEAR);
+              changeMedia(); // 이미지 전환
+
+              // Cooldown to prevent rapid switching on a single long blink
+              blinkCooldown = true;
+              setTimeout(() => {
+                blinkCooldown = false;
+              }, 1000); // 1초 쿨다운
+            }
+          } else {
+            isBlinking = false;
+          }
+        }
+      }
+
+      // MediaPipe Face Mesh 초기화
+      function initFaceMesh() {
+        const faceMesh = new FaceMesh({
+          locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+          },
+        });
+
+        faceMesh.setOptions({
+          maxNumFaces: 1,
+          refineLandmarks: true,
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5,
+        });
+
+        faceMesh.onResults(onResults);
+
+        const camera = new Camera(videoElement, {
+          onFrame: async () => {
+            await faceMesh.send({ image: videoElement });
+          },
+          width: 640,
+          height: 480,
+        });
+
+        camera.start();
+      }
+
+      // 페이지 로드 시 실행
+      loadMediaFiles();
+
+      // 웹캠 및 Face Mesh 초기화
+      if (typeof FaceMesh !== "undefined" && typeof Camera !== "undefined") {
+        initFaceMesh();
+      } else {
+        console.error("MediaPipe 라이브러리를 로드할 수 없습니다.");
+        loadingOverlay.textContent = "❌ 웹캠 초기화 실패";
+      }
+
+      // 촛불 효과 - 기획의도 섹션 (항상 활성화)
+      const planningSection = document.querySelector(".planning-section");
+
+      planningSection.addEventListener("mousemove", function (e) {
+        const rect = this.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        this.style.setProperty("--cursor-x", x + "px");
+        this.style.setProperty("--cursor-y", y + "px");
+      });
+
+      // 반딧불이 애니메이션
+      function animateFirefly(fireflyId, sectionSelector) {
+        const firefly = document.getElementById(fireflyId);
+        const section = document.querySelector(sectionSelector);
+
+        function moveFirefly() {
+          const sectionRect = section.getBoundingClientRect();
+          const sectionWidth = sectionRect.width;
+          const sectionHeight = sectionRect.height;
+
+          // 랜덤 시작 위치
+          const startX = Math.random() * (sectionWidth - 100);
+          const startY = Math.random() * (sectionHeight - 100);
+
+          // 랜덤 끝 위치 (더 넓은 범위)
+          const endX = Math.random() * (sectionWidth - 100);
+          const endY = Math.random() * (sectionHeight - 100);
+
+          // 더 긴 시간 (20-40초)
+          const duration = 20 + Math.random() * 20;
+
+          firefly.style.left = startX + "px";
+          firefly.style.top = startY + "px";
+
+          // 곡선 경로를 위한 중간 지점들
+          const midX1 = startX + (Math.random() - 0.5) * 300;
+          const midY1 = startY + (Math.random() - 0.5) * 300;
+          const midX2 = endX + (Math.random() - 0.5) * 300;
+          const midY2 = endY + (Math.random() - 0.5) * 300;
+
+          // CSS 애니메이션 커스터마이즈
+          firefly.style.animation = "none";
+          firefly.offsetHeight; // 리플로우 트리거
+
+          // 동적으로 keyframes 생성 (곡선 경로)
+          const animationName = `firefly-float-${fireflyId}-${Date.now()}`;
+          const styleSheet = document.createElement("style");
+          styleSheet.id = `style-${fireflyId}`;
+          styleSheet.textContent = `
+            @keyframes ${animationName} {
+              0% {
+                transform: translate(0, 0);
+                opacity: 0;
+              }
+              5% {
+                opacity: 0.8;
+              }
+              25% {
+                transform: translate(${midX1 - startX}px, ${midY1 - startY}px);
+                opacity: 1;
+              }
+              50% {
+                transform: translate(${(endX - startX) * 0.5}px, ${
+            (endY - startY) * 0.5
+          }px);
+                opacity: 1;
+              }
+              75% {
+                transform: translate(${midX2 - startX}px, ${midY2 - startY}px);
+                opacity: 1;
+              }
+              95% {
+                opacity: 0.8;
+              }
+              100% {
+                transform: translate(${endX - startX}px, ${endY - startY}px);
+                opacity: 0;
+              }
+            }
+          `;
+
+          // 기존 스타일 제거
+          const oldStyle = document.getElementById(`style-${fireflyId}`);
+          if (oldStyle) {
+            document.head.removeChild(oldStyle);
+          }
+
+          document.head.appendChild(styleSheet);
+
+          firefly.style.animation = `${animationName} ${duration}s ease-in-out`;
+
+          // 애니메이션 끝나면 다시 시작
+          setTimeout(() => {
+            moveFirefly();
+          }, duration * 1000);
+        }
+
+        moveFirefly();
+      }
+
+      // 반딧불이 시작 (스토리보드 섹션 - 5마리)
+      animateFirefly("firefly1", ".storyboard-section");
+
+      // 각 반딧불이마다 다른 시작 시간으로 자연스럽게
+      setTimeout(() => {
+        animateFirefly("firefly2", ".storyboard-section");
+      }, 2000);
+
+      setTimeout(() => {
+        animateFirefly("firefly3", ".storyboard-section");
+      }, 4000);
+
+      setTimeout(() => {
+        animateFirefly("firefly4", ".storyboard-section");
+      }, 6000);
+
+      setTimeout(() => {
+        animateFirefly("firefly5", ".storyboard-section");
+      }, 8000);
+
+      // 영상 자동 재생 (13.mp4)
+      const videoWrapper = document.getElementById("videoWrapper");
+      const video = document.getElementById("projectVideo");
+      const overlay = document.getElementById("videoOverlay");
+
+      // 페이지 로드 시 비디오 재생 및 오버레이 숨김
+      video
+        .play()
+        .then(() => {
+          overlay.classList.add("hidden");
+        })
+        .catch((error) => {
+          console.log("자동 재생 실패:", error);
+        });
+
+      videoWrapper.addEventListener("mouseenter", () => {
+        video.play();
+        overlay.classList.add("hidden");
+      });
+
+      videoWrapper.addEventListener("mouseleave", () => {
+        // 루프 재생이므로 정지하지 않음
+        // video.pause();
+        // video.currentTime = 0;
+        // overlay.classList.remove("hidden");
+      });
+
+      // 터치 디바이스를 위한 클릭 이벤트
+      videoWrapper.addEventListener("click", () => {
+        if (video.paused) {
+          video.play();
+          overlay.classList.add("hidden");
+        } else {
+          video.pause();
+          overlay.classList.remove("hidden");
+        }
+      });
+    </script>
+  </body>
+</html>
