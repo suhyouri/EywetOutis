@@ -2,8 +2,11 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Eγω et Oὔτis 나와 아무것도 아닌자</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Eγω et Oὔtis 나와 아무것도 아닌자</title>
 
     <!-- MediaPipe Face Mesh -->
     <script
@@ -53,6 +56,7 @@
         color: #000;
         background: #fff;
         scroll-behavior: smooth;
+        overflow-x: hidden;
       }
 
       /* 웹캠 비디오 (숨김) */
@@ -110,6 +114,7 @@
         color: #fff;
         position: relative;
         z-index: 1;
+        padding: 20px;
       }
 
       .hero-content h1 {
@@ -368,12 +373,14 @@
         max-width: 1400px;
         margin: 0 auto;
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
       }
 
       .storyboard-table {
         width: 100%;
         border-collapse: collapse;
         background: #000;
+        min-width: 800px;
       }
 
       .storyboard-table th,
@@ -415,10 +422,14 @@
         background: #111;
       }
 
+      .storyboard-table img {
+        max-width: 100%;
+        height: auto;
+      }
+
       /* 푸터 섹션 */
       .footer-section {
         font-family: "OnulKangsan";
-        /* font-size: 1.2rem; */
         padding: 50px;
         background: #000;
         text-align: center;
@@ -432,32 +443,189 @@
         margin: 0;
       }
 
-      /* 반응형 */
+      /* 모바일 반응형 (768px 이하) */
       @media (max-width: 768px) {
+        #loadingOverlay {
+          top: 10px;
+          right: 10px;
+          padding: 10px 15px;
+          font-size: 12px;
+        }
+
+        .hero-content h1 {
+          font-size: 3.5rem;
+        }
+
+        .hero-content .subtitle-kr {
+          font-size: 2rem;
+        }
+
+        .hero-content .year {
+          font-size: 1.2rem;
+        }
+
+        .hero-content p {
+          font-size: 1rem;
+        }
+
+        .planning-section {
+          padding: 60px 20px;
+        }
+
+        .planning-content h2 {
+          font-size: 2rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .planning-content p {
+          font-size: 1rem;
+          line-height: 1.7;
+          margin-bottom: 1.2rem;
+        }
+
+        .planning-content p[style*="padding-left"] {
+          padding-left: 15px !important;
+          font-size: 0.95rem !important;
+        }
+
+        .video-section {
+          padding: 60px 20px;
+        }
+
+        .video-container h2 {
+          font-size: 1.8rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .play-icon {
+          width: 50px;
+          height: 50px;
+          font-size: 1.2rem;
+        }
+
+        .storyboard-section {
+          padding: 60px 20px;
+        }
+
+        .storyboard-section h2 {
+          font-size: 1.8rem;
+          margin-bottom: 2rem;
+        }
+
+        .storyboard-container {
+          margin: 0 -20px;
+          padding: 0 20px;
+        }
+
+        .storyboard-table {
+          min-width: 600px;
+        }
+
+        .storyboard-table th,
+        .storyboard-table td {
+          min-width: 120px;
+          padding: 10px 8px;
+          font-size: 0.9rem;
+        }
+
+        .storyboard-table td {
+          height: 120px;
+        }
+
+        .storyboard-table img {
+          width: 4rem !important;
+          height: 6rem !important;
+          transform: scale(1.5) !important;
+        }
+
+        .footer-section {
+          padding: 30px 20px;
+        }
+
+        .footer-section p {
+          font-size: 1rem;
+        }
+      }
+
+      /* 작은 모바일 (480px 이하) */
+      @media (max-width: 480px) {
         .hero-content h1 {
           font-size: 2.5rem;
         }
 
-        .hero-content p {
-          font-size: 1.2rem;
+        .hero-content .subtitle-kr {
+          font-size: 1.5rem;
+        }
+
+        .hero-content .year {
+          font-size: 1rem;
+        }
+
+        .planning-section {
+          padding: 50px 15px;
+        }
+
+        .planning-content h2 {
+          font-size: 1.5rem;
+        }
+
+        .planning-content p {
+          font-size: 0.9rem;
+          line-height: 1.6;
+        }
+
+        .video-section {
+          padding: 50px 15px;
+        }
+
+        .video-container h2 {
+          font-size: 1.5rem;
+        }
+
+        .storyboard-section {
+          padding: 50px 15px;
+        }
+
+        .storyboard-section h2 {
+          font-size: 1.5rem;
+        }
+
+        .storyboard-table {
+          min-width: 500px;
+        }
+
+        .storyboard-table th,
+        .storyboard-table td {
+          min-width: 100px;
+          padding: 8px 5px;
+          font-size: 0.85rem;
+        }
+
+        .storyboard-table img {
+          width: 3rem !important;
+          height: 5rem !important;
+          transform: scale(1.3) !important;
+        }
+
+        .footer-section p {
+          font-size: 0.9rem;
+        }
+      }
+
+      /* 랜드스케이프 모드 조정 */
+      @media (max-height: 500px) and (orientation: landscape) {
+        .hero-content h1 {
+          font-size: 3rem;
+        }
+
+        .hero-content .subtitle-kr {
+          font-size: 1.5rem;
         }
 
         .planning-section,
         .video-section,
         .storyboard-section {
-          padding: 60px 20px;
-        }
-
-        .planning-content h2,
-        .video-container h2,
-        .storyboard-section h2 {
-          font-size: 2rem;
-        }
-
-        .storyboard-table th,
-        .storyboard-table td {
-          min-width: 150px;
-          padding: 10px;
+          padding: 40px 20px;
         }
       }
     </style>
@@ -571,7 +739,7 @@
           >
         </h2>
         <div class="video-wrapper" id="videoWrapper">
-          <video id="projectVideo" loop muted autoplay>
+          <video id="projectVideo" loop muted autoplay playsinline>
             <source src="video/01.mp4" type="video/mp4" />
             브라우저가 비디오를 지원하지 않습니다.
           </video>
@@ -2041,8 +2209,19 @@
         loadingOverlay.textContent = "❌ 웹캠 초기화 실패";
       }
 
-      // 촛불 효과 - 기획의도 섹션 (항상 활성화)
+      // 촛불 효과 - 기획의도 섹션
       const planningSection = document.querySelector(".planning-section");
+
+      // 모바일 터치 이벤트 추가
+      planningSection.addEventListener("touchmove", function (e) {
+        const touch = e.touches[0];
+        const rect = this.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+
+        this.style.setProperty("--cursor-x", x + "px");
+        this.style.setProperty("--cursor-y", y + "px");
+      });
 
       planningSection.addEventListener("mousemove", function (e) {
         const rect = this.getBoundingClientRect();
@@ -2163,7 +2342,7 @@
         animateFirefly("firefly5", ".storyboard-section");
       }, 8000);
 
-      // 영상 자동 재생 (13.mp4)
+      // 영상 자동 재생
       const videoWrapper = document.getElementById("videoWrapper");
       const video = document.getElementById("projectVideo");
       const overlay = document.getElementById("videoOverlay");
@@ -2181,13 +2360,6 @@
       videoWrapper.addEventListener("mouseenter", () => {
         video.play();
         overlay.classList.add("hidden");
-      });
-
-      videoWrapper.addEventListener("mouseleave", () => {
-        // 루프 재생이므로 정지하지 않음
-        // video.pause();
-        // video.currentTime = 0;
-        // overlay.classList.remove("hidden");
       });
 
       // 터치 디바이스를 위한 클릭 이벤트
